@@ -1,0 +1,67 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                tools:context=".MainActivity"
+                android:id="@+id/rl">
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/gridLayout"
+        android:rowCount="3"
+        android:layout_below="@+id/sizeSelect"
+        android:layout_alignParentEnd="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Download a"
+            android:id="@+id/textView"
+            android:layout_row="0"
+            android:layout_column="0"/>
+
+        <EditText
+            android:layout_width="117dp"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:ems="10"
+            android:id="@+id/numIts"
+            android:layout_row="0"
+            android:layout_column="1"
+            android:text="100"/>
+
+        <Spinner
+            android:layout_width="64dp"
+            android:layout_height="41dp"
+            android:id="@+id/sizeSelect"
+            android:entries="@array/spinnerValues"
+            android:layout_row="0"
+            android:layout_column="2"
+            android:spinnerMode="dropdown"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"/>
+
+        <TextView
+            android:layout_width="38dp"
+            android:layout_height="wrap_content"
+            android:text="file"
+            android:id="@+id/textView2"
+            android:layout_row="0"
+            android:layout_column="3"/>
+
+    </GridLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Begin Download"
+        android:id="@+id/beginTest"
+        android:layout_below="@+id/gridLayout"
+        android:layout_alignParentEnd="true"/>
+
+</RelativeLayout>
