@@ -162,7 +162,7 @@ public class MainActivity extends ActionBarActivity {
                     PingTimer timer = new PingTimer();
 
                     Name name = new Name("/ndn/download/max/" + /*(int)(Math.floor(Math.random() * 100000)) */String.valueOf(ii));
-                    Interest interest = new Interest(name);
+                    Interest interest = new Interest(name, 2000);
                     interest.setMustBeFresh(true);
                     timer.startUp();
                     face.expressInterest(interest, timer, timer);
