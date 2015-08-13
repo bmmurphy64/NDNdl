@@ -23,6 +23,7 @@ import net.named_data.jndn.OnTimeout;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.HashMap;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -30,20 +31,31 @@ public class MainActivity extends ActionBarActivity {
     private final String TAG = "NDNdl";
 
     private Spinner _sizeSelect;
+    private Spinner _locationSelect;
     private PowerManager _mgr;
     private PowerManager.WakeLock wakelock;
     private ProgressDialog _proDlg;
     private EditText _nIterations;
+    private EditText _timeOut;
     private Button _testButton;
+
+    private final HashMap<String, String> _prefixes = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         _sizeSelect = (Spinner) findViewById(R.id.sizeSelect);
+        _locationSelect = (Spinner) findViewById(R.id.locations);
         _nIterations = (EditText) findViewById(R.id.numIts);
+        _timeOut = (EditText) findViewById(R.id.timeout);
         _testButton = (Button) findViewById(R.id.beginTest);
         _testButton.setOnClickListener(btnClickListener);
+        _prefixes.put("Memphis", "/ndn/edu/memphis/download/");
+        _prefixes.put("St. Louis", "/ndn/edu/wustl/memphis/download/");
+        _prefixes.put("Switzerland", "/ndn/ch/unibas/memphis/download/");
+        _prefixes.put("Korea", "/ndn/kr/anyang/memphis/download/");
+        _prefixes.put("Los Angeles", "/ndn/org/caida/download/");
     }
 
     @Override
@@ -76,9 +88,6 @@ public class MainActivity extends ActionBarActivity {
             // TODO Auto-generated method stub
             DownloadThread thread;
 
-            Log.i(TAG, "Button clicked!");
-
-
             //Determine whether we're doing a KB or MB download
             int dlSize = _sizeSelect.getSelectedItem().toString().equals("KB") ?
                         Integer.parseInt(_nIterations.getText().toString()) :
@@ -88,6 +97,9 @@ public class MainActivity extends ActionBarActivity {
                 as traffic generator's max size is 8KB
              */
             dlSize = dlSize/8;
+            int timeOut = Integer.parseInt(_timeOut.getText().toString());
+
+            String downloadPrefix = _prefixes.get(_locationSelect.getSelectedItem().toString());
 
             _proDlg = ProgressDialog.show(MainActivity.this, "", "waiting...");
 
@@ -96,7 +108,7 @@ public class MainActivity extends ActionBarActivity {
             wakelock = _mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakeLock");
             wakelock.acquire();
 
-            thread = new DownloadThread(dlSize);
+            thread = new DownloadThread(dlSize, timeOut, downloadPrefix);
 
             thread.start();
         }
@@ -140,29 +152,33 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private class DownloadThread extends Thread {
-        private int nIterations_;
-        private Statistics statistics_;
+        private int _nIterations;
+        private int _timeOut;
+        private String _downloadPrefix;
+        private Statistics _statistics;
 
-        public DownloadThread(int iterations)
+        public DownloadThread(int iterations, int timeout, String dlPrefix)
         {
-            nIterations_ = (iterations != 0) ? iterations : 5;
-            statistics_ = new Statistics(MainActivity.this.getApplicationContext());
+            _nIterations = (iterations > 0) ? iterations : 5;
+            _timeOut = (timeout > 0) ? timeout : 1000;
+            _downloadPrefix = dlPrefix;
+            _statistics = new Statistics(MainActivity.this.getApplicationContext());
         }
 
         @Override
         public void run() {
-            Face face = new Face("polaris.cs.memphis.edu");
-            statistics_.beginResourceMonitor();
+            Face face = new Face();
+            _statistics.beginResourceMonitor();
             long testStart = System.currentTimeMillis();
 
             try {
 
-                for(int ii = 0; ii < nIterations_; ii++) {
+                for(int ii = 0; ii < _nIterations; ii++) {
 
                     PingTimer timer = new PingTimer();
 
-                    Name name = new Name("/ndn/download/max/" + /*(int)(Math.floor(Math.random() * 100000)) */String.valueOf(ii));
-                    Interest interest = new Interest(name, 2000);
+                    Name name = new Name(_downloadPrefix + "8kB/" + String.valueOf(ii));
+                    Interest interest = new Interest(name, _timeOut);
                     interest.setMustBeFresh(true);
                     timer.startUp();
                     face.expressInterest(interest, timer, timer);
@@ -173,16 +189,16 @@ public class MainActivity extends ActionBarActivity {
                     }
 
                     if(timer.getElapsedTime() != 0) {
-                        statistics_.addItem(timer.getElapsedTime());
+                        _statistics.addItem(timer.getElapsedTime());
                     }
 
                     else{   //make note that it's timed out, but otherwise continue
-                        statistics_.addTimeout();
+                        _statistics.addTimeout();
                     }
                 }
 
                 long testEnd = System.currentTimeMillis() - testStart;
-                statistics_.stopResourceMonitor();
+                _statistics.stopResourceMonitor();
 
                 File logfile = new File(getExternalFilesDir(null), "results.log");
                 BufferedWriter buf = null;
@@ -196,7 +212,7 @@ public class MainActivity extends ActionBarActivity {
                 }
 
                 buf = new BufferedWriter(new FileWriter(logfile, true));
-                buf.append(String.valueOf(testEnd/1000) + "\t" + statistics_.dumpStats());
+                buf.append(String.valueOf(testEnd / 1000) + "\t" + _statistics.dumpStats());
                 buf.newLine();
                 buf.close();
             }
