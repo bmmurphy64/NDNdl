@@ -33,7 +33,7 @@
             android:id="@+id/numIts"
             android:layout_row="0"
             android:layout_column="1"
-            android:text="100"/>
+            android:text="10"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -43,24 +43,13 @@
             android:layout_row="1"
             android:layout_column="0"/>
 
-        <Spinner
-            android:layout_width="64dp"
-            android:layout_height="41dp"
-            android:id="@+id/sizeSelect"
-            android:entries="@array/spinnerValues"
-            android:layout_row="0"
-            android:layout_column="2"
-            android:spinnerMode="dropdown"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true"/>
-
         <TextView
-            android:layout_width="38dp"
+            android:layout_width="115dp"
             android:layout_height="wrap_content"
-            android:text="file"
+            android:text="MB file"
             android:id="@+id/textView2"
             android:layout_row="0"
-            android:layout_column="3"/>
+            android:layout_column="2"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -90,7 +79,7 @@
             android:text="1000"/>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="108dp"
             android:layout_height="wrap_content"
             android:text="ms"
             android:id="@+id/textView5"
