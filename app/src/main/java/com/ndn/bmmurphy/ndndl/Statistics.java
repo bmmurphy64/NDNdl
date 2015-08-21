@@ -174,7 +174,7 @@ public class Statistics {
     public void run() {
       BufferedReader buf;
       File logfile;
-      BufferedWriter bufferedWriter;
+      BufferedWriter bufferedWriter = null;
       try {
         logfile = new File(context_.getExternalFilesDir(null),
             "topdump.log");
@@ -208,7 +208,8 @@ public class Statistics {
           bufferedWriter.append(topTest_);
           //bufferedWriter.newLine();
           Thread.sleep(430);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           try {
             bufferedWriter.close();
             process.destroy();

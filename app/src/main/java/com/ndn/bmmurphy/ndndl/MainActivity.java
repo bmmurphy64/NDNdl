@@ -161,7 +161,7 @@ public class MainActivity extends ActionBarActivity {
 		nIterations_ = iterations;  
 	  }
 	  else {
-		nIterations = 100;  
+		nIterations_ = 100;
 	  }
 	  if (timeout > 0) {
 		timeOut_ = timeout;  
@@ -188,29 +188,16 @@ public class MainActivity extends ActionBarActivity {
       long testStart = System.currentTimeMillis();
 
       try {
-        for (int i = 0; i < nIterations_; i++) {
-          PingTimer timer = new PingTimer(statistics_);
-
-          Name name = new Name(downloadPrefix_ + "8kB/" +
-                  String.valueOf(i));
-          Interest interest = new Interest(name, timeOut_);
-          interest.setMustBeFresh(true);
-          timer.startUp();
-          face.expressInterest(interest, timer, timer);
-          Thread.sleep(10);
-          //Process events every 20 Interests to ensure nothing times out.
-          if (i % 20 == 0) {
-            face.processEvents();
-            Thread.sleep(10);
-          }
-        }
-
+        InterestExpressionThread ieThread = new InterestExpressionThread(
+                nIterations_, timeOut_, downloadPrefix_, face, statistics_
+        );
+        ieThread.start();
         while ((statistics_.getSuccess() + statistics_.getTimeouts()) <
             nIterations_) {
-        face.processEvents();
-        Thread.sleep(10);
+          face.processEvents();
+          Thread.sleep(5);
         }
-
+        Log.i(TAG, "Leaving second loop");
         long testEnd = System.currentTimeMillis() - testStart;
         statistics_.setTotalTime(testEnd);
         statistics_.stopResourceMonitor();
@@ -245,4 +232,37 @@ public class MainActivity extends ActionBarActivity {
     }
 
   }
+    private class InterestExpressionThread extends Thread{
+
+        private int iterations_, timeout_;
+        private String prefix_;
+        private Face face_;
+        private Statistics statistics_;
+
+        public InterestExpressionThread(int iterations, int timeout, String prefix,
+                                        Face face, Statistics statistics) {
+            iterations_ = iterations;
+            timeout_ = timeout;
+            prefix_ = prefix;
+            face_ = face;
+            statistics_ = statistics;
+        }
+
+        public void run() {
+            for (int i = 0; i < iterations_; i++){
+                PingTimer timer = new PingTimer(statistics_);
+                Interest interest = new Interest(new Name(prefix_ + "8kB/" + String.valueOf(i)), timeout_);
+                interest.setMustBeFresh(true);
+                timer.startUp();
+                try {
+                    Log.i(TAG, "Express : " + prefix_);
+                    face_.expressInterest(interest, timer, timer);
+                    Thread.sleep(10);
+                }
+                catch (Exception e) {
+                    Log.i(TAG, "Error: " + e.getMessage());
+                }
+            }
+        }
+    }
 }
